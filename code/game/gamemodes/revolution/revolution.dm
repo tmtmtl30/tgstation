@@ -31,6 +31,8 @@
 	var/datum/team/revolution/revolution
 	var/list/datum/mind/headrev_candidates = list()
 	var/end_when_heads_dead = TRUE
+	var/victory_type = 0
+	var/is_domination = FALSE
 
 ///////////////////////////////////////////////////////////////////////////////
 //Gets the round setup, cancelling if there's not enough players at the start//
@@ -91,6 +93,8 @@
 		headrev_candidates -= trotsky
 
 	revolution = new()
+	if(is_domination)
+		revolution.is_domination_team = TRUE
 
 	for(var/datum/mind/rev_mind in headrev_candidates)
 		log_game("[key_name(rev_mind)] has been selected as a head rev")
@@ -98,6 +102,8 @@
 		new_head.give_flash = TRUE
 		new_head.give_hud = TRUE
 		new_head.remove_clumsy = TRUE
+		if(is_domination)
+			new_head.give_dom = TRUE
 		rev_mind.add_antag_datum(new_head,revolution)
 		GLOB.pre_setup_antags -= rev_mind
 
@@ -166,6 +172,7 @@
 		if(!considered_afk(rev_mind) && considered_alive(rev_mind) && is_station_level(T.z))
 			if(ishuman(rev_mind.current) || ismonkey(rev_mind.current))
 				return FALSE
+	victory_type = 3
 	return TRUE
 
 
@@ -216,3 +223,270 @@
 					N.timer_set = 200
 					N.set_safety()
 					N.set_active()
+
+GLOBAL_VAR_INIT(dominator_count, 0)
+
+/datum/game_mode/revolution/proc/check_victory_type()
+	if(SSshuttle.emergency.mode == SHUTTLE_ESCAPE || SSshuttle.emergency.mode == SHUTTLE_ENDGAME)
+		var/headcount = 0
+		var/untracked_heads = SSjob.get_all_heads()
+		for(var/mob/living/carbon/survivor in untracked_heads)
+			if(survivor.ckey && considered_escaped(survivor.mind))
+				headcount++
+		if(!headcount)
+			victory_type = 2
+		else
+			victory_type = 4
+
+/datum/game_mode/revolution/proc/considered_escaped(datum/mind/M)
+	if(M.force_escaped)
+		return TRUE
+	if(SSshuttle.emergency.mode != SHUTTLE_ENDGAME)
+		return FALSE
+	var/turf/location = get_turf(M.current)
+	if(!location || istype(location, /turf/open/floor/plasteel/shuttle/red) || istype(location, /turf/open/floor/mineral/plastitanium/red/brig))
+		return FALSE
+	return location.onCentCom() || location.onSyndieBase()
+
+/datum/game_mode/revolution/domination
+	name = "domination"
+	config_tag = "domination"
+	report_type = "domination"
+	end_when_heads_dead = FALSE
+	is_domination = TRUE
+
+/datum/game_mode/revolution/domination/post_setup()
+	.=..()
+	SSshuttle.clearHostileEnvironment(src)
+
+/datum/game_mode/revolution/domination/special_report()
+	if(victory_type == 1)
+		return "<div class='panel redborder'><span class='redtext big'>Revolution Major Victory: The revolutionaries assumed total control of the station!</span></div>"
+	else if(victory_type == 2)
+		return "<div class='panel redborder'><span class='redtext big'>Revolution Minor Victory: An escape signal made it to Central Command, but the revolution did manage to kill most of the heads of staff!</span></div>"
+	else if(victory_type == 3)
+		return "<div class='panel redborder'><span class='redtext big'>Crew Major Victory: The crew managed to stop the revolutionaries from taking control of the station!</span></div>"
+	else if(victory_type == 4)
+		return "<div class='panel redborder'><span class='redtext big'>Crew Minor Victory: A head of staff managed to escape to warn Central Command of the revolution!</span></div>"
+
+/datum/game_mode/revolution/check_rev_victory()
+	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
+		if(N.takeover_complete == 1)
+			victory_type = 1
+			return TRUE
+	return FALSE
+
+/datum/game_mode/revolution/domination/check_heads_victory()
+	var/dom_recount = 0
+	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
+		dom_recount++
+		if(N.active && !N.takeover_complete == 2)
+			return FALSE
+		if(N.takeover_complete == 2)
+			victory_type = 3
+			return TRUE
+		if(dom_recount < GLOB.dominator_count)
+			victory_type = 3
+			return TRUE
+		else
+			return ..()
+
+/datum/game_mode/revolution/domination/check_win()
+	if(check_rev_victory())
+		finished = 1
+	else if(check_heads_victory())
+		finished = 2
+	return
+
+/datum/game_mode/revolution/domination/check_finished()
+	if(finished != 0)
+		return TRUE
+		check_victory_type()
+	else
+		return ..()
+
+////////////
+////////////
+
+/obj/machinery/revdominator
+	name = "dominator"
+	desc = "This sinister-looking pile of machinery can be used to wrest control of all station systems. Requires a powered area that is not in space or blocked by a dense object to activate. May explode if destroyed."
+	icon = 'icons/obj/machines/dominator.dmi'
+	icon_state = "dominator"
+	density = TRUE
+	anchored = FALSE
+	can_be_unanchored = TRUE
+	max_integrity = 400
+	var/active = FALSE
+	var/broken = FALSE
+	var/last_chance = FALSE
+	var/beepsound = 'sound/items/timer.ogg'
+	var/next_beep
+	var/obj/effect/countdown/revdominator/clock
+	var/clock_set = 6000
+	var/countdown
+	var/takeover_complete = 0 // 0: Incomplete -- 1: Successful -- 2: All Dominators Destroyed
+
+/obj/machinery/revdominator/examine(mob/user)
+	. = ..()
+	if(in_range(user, src) && active)
+		. += "<span class='notice'>The embedded timer reads: <b>[seconds_remaining()]</b>.</span>"
+
+/obj/machinery/revdominator/Initialize()
+	. = ..()
+	clock = new(src)
+	GLOB.dominator_count++
+	GLOB.poi_list += src
+	var/num_revheads = 0
+	for(var/mob/living/carbon/survivor in GLOB.alive_mob_list)
+		if(survivor.ckey)
+			if(survivor.mind.has_antag_datum(/datum/antagonist/rev/head) == TRUE)
+				num_revheads++
+	if(GLOB.dominator_count >= num_revheads)
+		last_chance = TRUE
+	if(isopenturf(get_turf(src)) && !isspaceturf(get_turf(src)))
+		anchored = 1
+	else
+		anchored = 0
+	interaction_flags_machine -= INTERACT_MACHINE_ALLOW_SILICON
+
+/obj/machinery/revdominator/update_icon()
+	if(active)
+		icon_state = "dominator-red"
+	else
+		icon_state = "dominator"
+
+/obj/machinery/revdominator/proc/toggle_on(mob/user)
+	notify_ghosts("\A [src] has been activated at [get_area(src)]!", source = src, action = NOTIFY_ORBIT)
+	clock.start()
+	START_PROCESSING(SSfastprocess, src)
+	active = TRUE
+	update_icon()
+	SSshuttle.registerHostileEnvironment(src)
+	SSmapping.add_nuke_threat(src)
+	var/num_revs = 0
+	var/num_nonrevs = 0
+	for(var/mob/living/carbon/survivor in GLOB.alive_mob_list)
+		if(survivor.ckey)
+			if(survivor.mind.has_antag_datum(/datum/antagonist/rev) == TRUE)
+				num_revs++
+			else
+				num_nonrevs++
+	clock_set = max((clock_set*(num_revs/num_nonrevs)),2400)
+	countdown = world.time + clock_set
+	set_security_level("delta")
+	for(var/obj/item/pinpointer/nuke/P in GLOB.pinpointer_list)
+		P.switch_mode_to(TRACK_DOMINATOR)
+	var/turf/T = get_turf(src)
+	T.visible_message("<span class='warning'>The [src]'s anchoring bolts lock into place with an intense click as it activates.</span>")
+	minor_announce("Hostile takeover signal detected. Signal origin pinpointed to [get_area(src)].")
+	anchored = 1
+	can_be_unanchored = 0
+
+/obj/machinery/revdominator/proc/toggle_off(mob/user)
+	QDEL_NULL(clock)
+	broken = TRUE
+	if(active)
+		active = FALSE
+		GLOB.poi_list -= src
+		STOP_PROCESSING(SSfastprocess, src)
+		SSshuttle.clearHostileEnvironment(src)
+		SSmapping.remove_nuke_threat(src)
+		set_security_level("red")
+		minor_announce("Hostile activity within station systems has ceased.")
+		for(var/obj/item/pinpointer/nuke/P in GLOB.pinpointer_list)
+			P.switch_mode_to(TRACK_NUKE_DISK)
+
+
+/obj/machinery/revdominator/proc/takeover()
+	sound_to_playing_players('sound/machines/alarm.ogg')
+	resistance_flags |= INDESTRUCTIBLE
+	takeover_complete = 1
+	addtimer(CALLBACK(src, .proc/finish_takeover), 10 SECONDS)
+
+/obj/machinery/revdominator/proc/finish_takeover()
+	to_chat(world, "<B>A device has taken control of all of the station's systems!</B>")
+	SSticker.mode.check_win()
+//	SSticker.force_ending = 1
+
+/obj/machinery/revdominator/proc/seconds_remaining()
+	. = max(0, (round((countdown - world.time) / 10)))
+
+/obj/machinery/revdominator/interact(mob/user)
+	if(active || takeover_complete == 1)
+		to_chat(user, "<span class='notice'>The embedded timer reads: <b>[seconds_remaining()]</b>.</span>")
+		return
+	if(!active)
+		if((user.mind.has_antag_datum(/datum/antagonist/rev) == FALSE) || alert(user, "Attempt to take control of all station systems?", "[src]", "Yes", "Cancel") == "Cancel")
+			if(user.canUseTopic(src, BE_CLOSE))
+				to_chat(user, "<b>You warily regard the inactive [src].</b>")
+				return
+			else
+				return
+	if(!user.canUseTopic(src, BE_CLOSE))
+		return
+	if(!is_station_level(src.z))
+		to_chat(user, "<span class='notice'>Dominator is unable to establish connection to station systems. Relocate Dominator to station territory before continuing.</span>")
+		return
+	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
+		if(N.active)
+			to_chat(user, "<span class='notice'>Station takeover is underway from another location. Unable to initiate takeover. Aborting.</span>")
+			return
+	if(SSshuttle.emergency.mode == SHUTTLE_ESCAPE || SSshuttle.emergency.mode == SHUTTLE_ENDGAME)
+		to_chat(user, "<span class='notice'>Successful emergency evacuation signal detected. Unable to initiate takeover.</span>")
+		return
+	if(src.powered() && isopenturf(get_turf(src)) && !isspaceturf(get_turf(src)))
+		if(do_after(user,50,target = src) && !active)
+			toggle_on(user)
+			add_fingerprint(user)
+			next_beep = world.time + 10
+			playsound(loc, 'sound/items/nuke_toy_lowpower.ogg', 50, 1)
+			to_chat(user, "<b>You activate the [src].</b>")
+			message_admins("[ADMIN_LOOKUPFLW(user)] activated a dominator at [ADMIN_VERBOSEJMP(src.loc)] with a [seconds_remaining()] timer.")
+	else
+		to_chat(user, "<span class='notice'>Device does not have power, is blocked by a dense object, or is in space. Aborting.</span>")
+
+/obj/machinery/revdominator/attackby(obj/item/I, mob/user, params)
+	if((I.tool_behaviour == TOOL_WRENCH) && (src.can_be_unanchored == 1))
+		to_chat(user, "<span class='notice'>You begin to [anchored ? "unwrench" : "wrench"] [src].</span>")
+		if(I.use_tool(src, user, 20, volume=50))
+			to_chat(user, "<span class='notice'>You successfully [anchored ? "unwrench" : "wrench"] [src].</span>")
+			setAnchored(!anchored)
+	else
+		return ..()
+
+/obj/machinery/revdominator/Destroy()
+	explosion(src,0,0,2,2, flame_range = 2)
+	if(last_chance)
+		takeover_complete = 2
+		SSticker.mode.check_win()
+	if(takeover_complete == 1)
+		return
+	toggle_off()
+	return ..()
+
+/obj/machinery/revdominator/process()
+	if(!active)
+		STOP_PROCESSING(SSfastprocess, src)
+		return
+	var/sec_left = seconds_remaining()
+	if(!sec_left)
+		active = FALSE
+		takeover()
+	if(!isnull(next_beep) && (next_beep <= world.time))
+		var/volume
+		switch(seconds_remaining())
+			if(0 to 5)
+				volume = 50
+			if(5 to 10)
+				volume = 40
+			if(10 to 15)
+				volume = 30
+			if(15 to 20)
+				volume = 20
+			if(20 to 25)
+				volume = 10
+			else
+				volume = 5
+		playsound(loc, beepsound, volume, 0)
+		next_beep = world.time + 10

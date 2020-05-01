@@ -69,7 +69,12 @@
 	return rev_team
 
 /datum/antagonist/rev/proc/create_objectives()
-	objectives |= rev_team.objectives
+	if(rev_team.is_domination_team)
+		var/datum/objective/dominator/new_target = new()
+		objectives += new_target
+		owner.announce_objectives()
+	else
+		objectives |= rev_team.objectives
 
 /datum/antagonist/rev/proc/remove_objectives()
 	objectives -= rev_team.objectives
@@ -100,6 +105,8 @@
 	give_flash = TRUE
 	give_hud = TRUE
 	remove_clumsy = TRUE
+	if(rev_team.is_domination_team)
+		give_dom = TRUE
 	new_owner.add_antag_datum(src)
 	message_admins("[key_name_admin(admin)] has head-rev'ed [key_name_admin(new_owner)].")
 	log_admin("[key_name(admin)] has head-rev'ed [key_name(new_owner)].")
@@ -151,6 +158,7 @@
 /datum/antagonist/rev/head
 	name = "Head Revolutionary"
 	antag_hud_name = "rev_head"
+	var/give_dom = FALSE
 	var/remove_clumsy = FALSE
 	var/give_flash = FALSE
 	var/give_hud = TRUE
@@ -257,25 +265,36 @@
 		S.Insert(C)
 		to_chat(C, "Your eyes have been implanted with a cybernetic security HUD which will help you keep track of who is mindshield-implanted, and therefore unable to be recruited.")
 
+	if(give_dom || rev_team.is_domination_team)
+		var/obj/item/implant/beacondrop/dominator/D
+		D = new /obj/item/implant/beacondrop/dominator(C)
+		D.implant(C,FALSE, silent = TRUE, force = TRUE)
+		to_chat(C, "You have been implanted with a beacon that will send a Dominator to your position, enabling station takeover. Be careful: <b>you only get one shot</b>.")
+
 /datum/team/revolution
 	name = "Revolution"
 	var/max_headrevs = 3
 	var/list/ex_headrevs = list() // Dynamic removes revs on loss, used to keep a list for the roundend report.
 	var/list/ex_revs = list()
+	var/is_domination_team = FALSE // set to TRUE by the domination game_mode if this is a domination round
 
 /datum/team/revolution/proc/update_objectives(initial = FALSE)
-	var/untracked_heads = SSjob.get_all_heads()
-	for(var/datum/objective/mutiny/O in objectives)
-		untracked_heads -= O.target
-	for(var/datum/mind/M in untracked_heads)
-		var/datum/objective/mutiny/new_target = new()
-		new_target.team = src
-		new_target.target = M
-		new_target.update_explanation_text()
+	if(is_domination_team)
+		var/datum/objective/dominator/new_target = new()
 		objectives += new_target
-	for(var/datum/mind/M in members)
-		var/datum/antagonist/rev/R = M.has_antag_datum(/datum/antagonist/rev)
-		R.objectives |= objectives
+	else
+		var/untracked_heads = SSjob.get_all_heads()
+		for(var/datum/objective/mutiny/O in objectives)
+			untracked_heads -= O.target
+		for(var/datum/mind/M in untracked_heads)
+			var/datum/objective/mutiny/new_target = new()
+			new_target.team = src
+			new_target.target = M
+			new_target.update_explanation_text()
+			objectives += new_target
+		for(var/datum/mind/M in members)
+			var/datum/antagonist/rev/R = M.has_antag_datum(/datum/antagonist/rev)
+			R.objectives |= objectives
 
 	addtimer(CALLBACK(src,.proc/update_objectives),HEAD_UPDATE_PERIOD,TIMER_UNIQUE)
 
@@ -308,8 +327,9 @@
 				var/datum/mind/new_leader = pick(promotable)
 				var/datum/antagonist/rev/rev = new_leader.has_antag_datum(/datum/antagonist/rev)
 				rev.promote()
+	if(!is_domination_team)
+		addtimer(CALLBACK(src,.proc/update_heads),HEAD_UPDATE_PERIOD,TIMER_UNIQUE)
 
-	addtimer(CALLBACK(src,.proc/update_heads),HEAD_UPDATE_PERIOD,TIMER_UNIQUE)
 
 /datum/team/revolution/proc/save_members()
 	ex_headrevs = get_antag_minds(/datum/antagonist/rev/head, TRUE)
