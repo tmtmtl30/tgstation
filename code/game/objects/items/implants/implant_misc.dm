@@ -130,6 +130,15 @@
 				<b>Implant Details:</b> Allows user to use an internal radio, useful if user expects equipment loss, or cannot equip conventional radios."}
 	return dat
 
+/obj/item/implanter/radio
+	name = "implanter (internal radio)"
+	imp_type = /obj/item/implant/radio
+
+/obj/item/implanter/radio/syndicate
+	name = "implanter (internal syndicate radio)"
+	imp_type = /obj/item/implant/radio/syndicate
+
+/* BEGIN DOM DEBUG TAG */
 /obj/item/implant/beacondrop
 	name = "beacon implant"
 	icon = 'icons/obj/device.dmi'
@@ -168,11 +177,4 @@
 	. = ..()
 	if(uses)
 		GLOB.dominator_count++
-
-/obj/item/implanter/radio
-	name = "implanter (internal radio)"
-	imp_type = /obj/item/implant/radio
-
-/obj/item/implanter/radio/syndicate
-	name = "implanter (internal syndicate radio)"
-	imp_type = /obj/item/implant/radio/syndicate
+/* END DOM DEBUG TAG */

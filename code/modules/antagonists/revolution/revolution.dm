@@ -69,12 +69,14 @@
 	return rev_team
 
 /datum/antagonist/rev/proc/create_objectives()
+/* BEGIN DOM DEBUG TAG */
 	if(rev_team.is_domination_team)
 		var/datum/objective/dominator/new_target = new()
 		objectives += new_target
 		owner.announce_objectives()
 	else
 		objectives |= rev_team.objectives
+/* END DOM DEBUG TAG */
 
 /datum/antagonist/rev/proc/remove_objectives()
 	objectives -= rev_team.objectives
@@ -105,8 +107,10 @@
 	give_flash = TRUE
 	give_hud = TRUE
 	remove_clumsy = TRUE
+/* BEGIN DOM DEBUG TAG */
 	if(rev_team.is_domination_team)
 		give_dom = TRUE
+/* END DOM DEBUG TAG */
 	new_owner.add_antag_datum(src)
 	message_admins("[key_name_admin(admin)] has head-rev'ed [key_name_admin(new_owner)].")
 	log_admin("[key_name(admin)] has head-rev'ed [key_name(new_owner)].")
@@ -158,7 +162,9 @@
 /datum/antagonist/rev/head
 	name = "Head Revolutionary"
 	antag_hud_name = "rev_head"
+/* BEGIN DOM DEBUG TAG */
 	var/give_dom = FALSE
+/* END DOM DEBUG TAG */
 	var/remove_clumsy = FALSE
 	var/give_flash = FALSE
 	var/give_hud = TRUE
@@ -265,20 +271,25 @@
 		S.Insert(C)
 		to_chat(C, "Your eyes have been implanted with a cybernetic security HUD which will help you keep track of who is mindshield-implanted, and therefore unable to be recruited.")
 
+/* BEGIN DOM DEBUG TAG */
 	if(give_dom || rev_team.is_domination_team)
 		var/obj/item/implant/beacondrop/dominator/D
 		D = new /obj/item/implant/beacondrop/dominator(C)
 		D.implant(C,FALSE, silent = TRUE, force = TRUE)
 		to_chat(C, "You have been implanted with a beacon that will send a Dominator to your position, enabling station takeover. Be careful: <b>you only get one shot</b>.")
+/* END DOM DEBUG TAG */
 
 /datum/team/revolution
 	name = "Revolution"
 	var/max_headrevs = 3
 	var/list/ex_headrevs = list() // Dynamic removes revs on loss, used to keep a list for the roundend report.
 	var/list/ex_revs = list()
+/* BEGIN DOM DEBUG TAG */
 	var/is_domination_team = FALSE // set to TRUE by the domination game_mode if this is a domination round
+/* END DOM DEBUG TAG */
 
 /datum/team/revolution/proc/update_objectives(initial = FALSE)
+/* BEGIN DOM DEBUG TAG */
 	if(is_domination_team)
 		var/datum/objective/dominator/new_target = new()
 		objectives += new_target
@@ -295,6 +306,7 @@
 		for(var/datum/mind/M in members)
 			var/datum/antagonist/rev/R = M.has_antag_datum(/datum/antagonist/rev)
 			R.objectives |= objectives
+/* END DOM DEBUG TAG */
 
 	addtimer(CALLBACK(src,.proc/update_objectives),HEAD_UPDATE_PERIOD,TIMER_UNIQUE)
 
@@ -327,8 +339,10 @@
 				var/datum/mind/new_leader = pick(promotable)
 				var/datum/antagonist/rev/rev = new_leader.has_antag_datum(/datum/antagonist/rev)
 				rev.promote()
+/* BEGIN DOM DEBUG TAG */
 	if(!is_domination_team)
 		addtimer(CALLBACK(src,.proc/update_heads),HEAD_UPDATE_PERIOD,TIMER_UNIQUE)
+/* END DOM DEBUG TAG */
 
 
 /datum/team/revolution/proc/save_members()

@@ -31,8 +31,10 @@
 	var/datum/team/revolution/revolution
 	var/list/datum/mind/headrev_candidates = list()
 	var/end_when_heads_dead = TRUE
+/* BEGIN DOM DEBUG TAG */
 	var/victory_type = 0
 	var/is_domination = FALSE
+/* END DOM DEBUG TAG */
 
 ///////////////////////////////////////////////////////////////////////////////
 //Gets the round setup, cancelling if there's not enough players at the start//
@@ -93,8 +95,10 @@
 		headrev_candidates -= trotsky
 
 	revolution = new()
+/* BEGIN DOM DEBUG TAG */
 	if(is_domination)
 		revolution.is_domination_team = TRUE
+/* END DOM DEBUG TAG */
 
 	for(var/datum/mind/rev_mind in headrev_candidates)
 		log_game("[key_name(rev_mind)] has been selected as a head rev")
@@ -102,8 +106,10 @@
 		new_head.give_flash = TRUE
 		new_head.give_hud = TRUE
 		new_head.remove_clumsy = TRUE
+/* BEGIN DOM DEBUG TAG */
 		if(is_domination)
 			new_head.give_dom = TRUE
+/* END DOM DEBUG TAG */
 		rev_mind.add_antag_datum(new_head,revolution)
 		GLOB.pre_setup_antags -= rev_mind
 
@@ -172,7 +178,9 @@
 		if(!considered_afk(rev_mind) && considered_alive(rev_mind) && is_station_level(T.z))
 			if(ishuman(rev_mind.current) || ismonkey(rev_mind.current))
 				return FALSE
+/* BEGIN DOM DEBUG TAG */
 	victory_type = 3
+/* END DOM DEBUG TAG */
 	return TRUE
 
 
@@ -224,6 +232,7 @@
 					N.set_safety()
 					N.set_active()
 
+/* BEGIN DOM DEBUG TAG */
 GLOBAL_VAR_INIT(dominator_count, 0)
 
 /datum/game_mode/revolution/proc/check_victory_type()
@@ -490,3 +499,4 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 				volume = 5
 		playsound(loc, beepsound, volume, 0)
 		next_beep = world.time + 10
+/* END DOM DEBUG TAG */

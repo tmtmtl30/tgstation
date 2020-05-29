@@ -123,16 +123,6 @@
 	else if(DD.timing)
 		return "<div align='center' valign='middle' style='position:relative; top:0px; left:0px'>[DD.seconds_remaining()]</div>"
 
-/obj/effect/countdown/revdominator
-	name = "dominator countdown"
-
-/obj/effect/countdown/revdominator/get_value()
-	var/obj/machinery/revdominator/DM = attached_to
-	if(!istype(DM))
-		return
-	else if(DM.active)
-		return "<div align='center' valign='middle' style='position:relative; top:0px; left:0px'>[DM.seconds_remaining()]</div>"
-
 /obj/effect/countdown/anomaly
 	name = "anomaly countdown"
 
@@ -167,3 +157,15 @@
 		var/obj/machinery/computer/arena/C = A.get_controller()
 		var/time_left = max(0, (C.start_time - world.time) / 10)
 		return round(time_left)
+
+/* BEGIN DOM DEBUG TAG */
+/obj/effect/countdown/revdominator
+	name = "dominator countdown"
+
+/obj/effect/countdown/revdominator/get_value()
+	var/obj/machinery/revdominator/DM = attached_to
+	if(!istype(DM))
+		return
+	else if(DM.active)
+		return "<div align='center' valign='middle' style='position:relative; top:0px; left:0px'>[DM.seconds_remaining()]</div>"
+/* END DOM DEBUG TAG */

@@ -500,17 +500,6 @@ GLOBAL_LIST(admin_objective_list) //Prefilled admin assignable objective list
 		return TRUE
 	return FALSE
 
-/datum/objective/dominator
-	name = "dominator"
-	explanation_text = "Take over the station with a Dominator."
-
-/datum/objective/dominator/check_completion()
-	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
-		if(N.takeover_complete == TRUE)
-			return TRUE
-		else
-			return FALSE
-
 GLOBAL_LIST_EMPTY(possible_items)
 /datum/objective/steal
 	name = "steal"
@@ -1148,3 +1137,16 @@ GLOBAL_LIST_EMPTY(possible_items_special)
 	var/area/target_area = get_area(target)
 
 	return (istype(user_area, dropoff) && istype(target_area, dropoff))
+
+/* BEGIN DOM DEBUG TAG */
+/datum/objective/dominator
+	name = "dominator"
+	explanation_text = "Take over the station with a Dominator."
+
+/datum/objective/dominator/check_completion()
+	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
+		if(N.takeover_complete == TRUE)
+			return TRUE
+		else
+			return FALSE
+/* END DOM DEBUG TAG */

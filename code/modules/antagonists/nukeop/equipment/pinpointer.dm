@@ -11,17 +11,21 @@
 			msg += "\"01000001 01001001\"."
 		if(TRACK_INFILTRATOR)
 			msg += "\"vasvygengbefuvc\"."
+/* BEGIN DOM DEBUG TAG */
 		if(TRACK_DOMINATOR)
 			msg += "\"<b>Viva!</b>\"."
+/* END DOM DEBUG TAG */
 		else
 			msg = "Its tracking indicator is blank."
 	. += msg
 	for(var/obj/machinery/nuclearbomb/bomb in GLOB.machines)
 		if(bomb.timing)
 			. += "Extreme danger. Arming signal detected. Time remaining: [bomb.get_time_left()]."
+/* BEGIN DOM DEBUG TAG */
 	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
 		if(N.active)
 			. += "Extreme danger. Station takeover signal detected. Time remaining: [N.seconds_remaining()]."
+/* END DOM DEBUG TAG */
 
 /obj/item/pinpointer/nuke/process()
 	..()
@@ -52,10 +56,12 @@
 					target = A
 		if(TRACK_INFILTRATOR)
 			target = SSshuttle.getShuttle("syndicate")
+/* BEGIN DOM DEBUG TAG */
 		if(TRACK_DOMINATOR)
 			var/obj/machinery/revdominator/N = locate() in GLOB.poi_list
 			if(N.active)
 				target = N
+/* END DOM DEBUG TAG */
 	..()
 
 /obj/item/pinpointer/nuke/proc/switch_mode_to(new_mode)
@@ -96,4 +102,4 @@
 	var/mob/living/closest_operative = get_closest_atom(/mob/living/carbon/human, possible_targets, here)
 	if(closest_operative)
 		target = closest_operative
-..()
+	..()
