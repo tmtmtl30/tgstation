@@ -325,7 +325,6 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	var/clock_set = 6000
 	var/countdown
 	var/takeover_complete = 0 // 0: Incomplete -- 1: Successful -- 2: All Dominators Destroyed
-	var/victory_type = 0
 
 /obj/machinery/revdominator/examine(mob/user)
 	. = ..()
