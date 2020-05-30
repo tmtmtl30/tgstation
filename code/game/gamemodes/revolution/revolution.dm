@@ -278,7 +278,7 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	else if(victory_type == 4)
 		return "<div class='panel redborder'><span class='redtext big'>Crew Minor Victory: A head of staff managed to escape to warn Central Command of the revolution!</span></div>"
 
-/datum/game_mode/revolution/check_rev_victory()
+/datum/game_mode/revolution/domination/check_rev_victory()
 	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
 		if(N.takeover_complete == 1)
 			victory_type = 1
