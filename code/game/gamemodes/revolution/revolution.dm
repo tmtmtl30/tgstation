@@ -32,7 +32,6 @@
 	var/list/datum/mind/headrev_candidates = list()
 	var/end_when_heads_dead = TRUE
 /* BEGIN DOM DEBUG TAG */
-	var/victory_type = 0
 	var/is_domination = FALSE
 /* END DOM DEBUG TAG */
 
@@ -164,7 +163,7 @@
 //Checks for rev victory//
 //////////////////////////
 /datum/game_mode/revolution/proc/check_rev_victory()
-	for(var/datum/objective/mutiny/objective in revolution.objectives)
+	for(var/datum/objective/objective in revolution.objectives)
 		if(!(objective.check_completion()))
 			return FALSE
 	return TRUE
@@ -178,9 +177,6 @@
 		if(!considered_afk(rev_mind) && considered_alive(rev_mind) && is_station_level(T.z))
 			if(ishuman(rev_mind.current) || ismonkey(rev_mind.current))
 				return FALSE
-/* BEGIN DOM DEBUG TAG */
-	victory_type = 3
-/* END DOM DEBUG TAG */
 	return TRUE
 
 
@@ -243,7 +239,7 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 			if(survivor.ckey && considered_escaped(survivor.mind))
 				headcount++
 		if(!headcount)
-			victory_type = 2
+			victory_type = 3
 		else
 			victory_type = 4
 
@@ -269,21 +265,22 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	SSshuttle.clearHostileEnvironment(src)
 
 /datum/game_mode/revolution/domination/special_report()
-	if(victory_type == 1)
-		return "<div class='panel redborder'><span class='redtext big'>Revolution Major Victory: The revolutionaries assumed total control of the station!</span></div>"
-	else if(victory_type == 2)
-		return "<div class='panel redborder'><span class='redtext big'>Revolution Minor Victory: An escape signal made it to Central Command, but the revolution did manage to kill most of the heads of staff!</span></div>"
-	else if(victory_type == 3)
-		return "<div class='panel redborder'><span class='redtext big'>Crew Major Victory: The crew managed to stop the revolutionaries from taking control of the station!</span></div>"
-	else if(victory_type == 4)
-		return "<div class='panel redborder'><span class='redtext big'>Crew Minor Victory: A head of staff managed to escape to warn Central Command of the revolution!</span></div>"
+	switch(victory_type)
+		if(1)
+			return "<div class='panel redborder'><span class='redtext big'>Revolution Major Victory: The revolutionaries assumed total control of the station!</span></div>"
+		if(2)
+			return "<div class='panel redborder'><span class='redtext big'>Crew Major Victory: The crew managed to stop the revolutionaries from taking control of the station!</span></div>"
+		if(3)
+			return "<div class='panel redborder'><span class='redtext big'>Revolution Minor Victory: An escape signal made it to Central Command, but the revolution stopped the heads of staff from escaping!</span></div>"
+		if(4)
+			return "<div class='panel redborder'><span class='redtext big'>Crew Minor Victory: A head of staff managed to escape to warn Central Command of the revolution!</span></div>"
 
 /datum/game_mode/revolution/domination/check_rev_victory()
-	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
-		if(N.takeover_complete == 1)
-			victory_type = 1
-			return TRUE
-	return FALSE
+	for(var/datum/objective/objective in revolution.objectives)
+		if(!(objective.check_completion()))
+			return FALSE
+	victory_type = 1
+	return TRUE
 
 /datum/game_mode/revolution/domination/check_heads_victory()
 	var/dom_recount = 0
@@ -292,20 +289,13 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 		if(N.active && !N.takeover_complete == 2)
 			return FALSE
 		if(N.takeover_complete == 2)
-			victory_type = 3
+			victory_type = 2
 			return TRUE
 		if(dom_recount < GLOB.dominator_count)
-			victory_type = 3
+			victory_type = 2
 			return TRUE
 		else
 			return ..()
-
-/datum/game_mode/revolution/domination/check_win()
-	if(check_rev_victory())
-		finished = 1
-	else if(check_heads_victory())
-		finished = 2
-	return
 
 /datum/game_mode/revolution/domination/check_finished()
 	if(finished != 0)
@@ -335,6 +325,7 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	var/clock_set = 6000
 	var/countdown
 	var/takeover_complete = 0 // 0: Incomplete -- 1: Successful -- 2: All Dominators Destroyed
+	var/victory_type = 0
 
 /obj/machinery/revdominator/examine(mob/user)
 	. = ..()
