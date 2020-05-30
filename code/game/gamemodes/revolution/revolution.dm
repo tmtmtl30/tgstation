@@ -25,7 +25,7 @@
 	<span class='danger'>Revolutionaries</span>: Expand your cause and overthrow the heads of staff by execution or otherwise.\n\
 	<span class='notice'>Crew</span>: Prevent the revolutionaries from taking over the station."
 
-	var/finished = 0
+	var/victory_status = 0
 	var/max_headrevs = 3
 	var/datum/team/revolution/revolution
 	var/list/datum/mind/headrev_candidates = list()
@@ -123,14 +123,21 @@
 ///////////////////////////////////////////
 /datum/game_mode/revolution/check_finished()
 	if(check_rev_victory())
-		finished = 1
+		victory_status = 1
 	else if(check_heads_victory())
-		finished = 2
+		victory_status = 2
+
+	if(victory_status)
+		if(!(CONFIG_GET(keyed_list/continuous["revolution"])))
+			return TRUE
+		SSshuttle.clearHostileEnviornment(src)
+	return ..()
+
 	if(CONFIG_GET(keyed_list/continuous)["revolution"])
-		if(finished)
+		if(victory_status)
 			SSshuttle.clearHostileEnvironment(src)
 		return ..()
-	if(finished && end_when_heads_dead)
+	if(victory_status && end_when_heads_dead)
 		return TRUE
 	else
 		return ..()
@@ -167,18 +174,18 @@
 
 /datum/game_mode/revolution/set_round_result()
 	..()
-	if(finished == 1)
+	if(victory_status == 1)
 		SSticker.mode_result = "win - heads killed"
 		SSticker.news_report = REVS_WIN
-	else if(finished == 2)
+	else if(victory_status == 2)
 		SSticker.mode_result = "loss - rev heads killed"
 		SSticker.news_report = REVS_LOSE
 
 //TODO What should be displayed for revs in non-rev rounds
 /datum/game_mode/revolution/special_report()
-	if(finished == 1)
+	if(victory_status == 1)
 		return "<div class='panel redborder'><span class='redtext big'>The heads of staff were killed or exiled! The revolutionaries win!</span></div>"
-	else if(finished == 2)
+	else if(victory_status == 2)
 		return "<div class='panel redborder'><span class='redtext big'>The heads of staff managed to stop the revolution!</span></div>"
 
 /datum/game_mode/revolution/generate_report()
@@ -218,7 +225,16 @@
 /* BEGIN DOM DEBUG TAG */
 GLOBAL_VAR_INIT(dominator_count, 0)
 
-/datum/game_mode/revolution/proc/check_victory_type()
+/datum/game_mode/revolution/domination
+	name = "domination"
+	config_tag = "domination"
+	report_type = "domination"
+	end_when_heads_dead = FALSE
+	is_domination = TRUE
+	var/victory_type = 0
+
+/// sets our victory type depending on whether any heads of staff escaped alive
+/datum/game_mode/revolution/domination/proc/check_victory_type()
 	if(SSshuttle.emergency.mode == SHUTTLE_ESCAPE || SSshuttle.emergency.mode == SHUTTLE_ENDGAME)
 		var/headcount = 0
 		var/untracked_heads = SSjob.get_all_heads()
@@ -230,7 +246,8 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 		else
 			victory_type = 4
 
-/datum/game_mode/revolution/proc/considered_escaped(datum/mind/M)
+/* DOM DEBUG HOLY SHIT THIS PROC SUCKS SO BAD */
+/datum/game_mode/revolution/domination/proc/considered_escaped(datum/mind/M)
 	if(M.force_escaped)
 		return TRUE
 	if(SSshuttle.emergency.mode != SHUTTLE_ENDGAME)
@@ -239,13 +256,6 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	if(!location || istype(location, /turf/open/floor/plasteel/shuttle/red) || istype(location, /turf/open/floor/mineral/plastitanium/red/brig))
 		return FALSE
 	return location.onCentCom() || location.onSyndieBase()
-
-/datum/game_mode/revolution/domination
-	name = "domination"
-	config_tag = "domination"
-	report_type = "domination"
-	end_when_heads_dead = FALSE
-	is_domination = TRUE
 
 /datum/game_mode/revolution/domination/post_setup()
 	.=..()
@@ -285,11 +295,10 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 			return ..()
 
 /datum/game_mode/revolution/domination/check_finished()
-	if(finished != 0)
-		return TRUE
+	. = ..()
+	victory_type = victory_status
+	if(.)
 		check_victory_type()
-	else
-		return ..()
 
 ////////////
 ////////////
