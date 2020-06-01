@@ -405,10 +405,10 @@
 
 /datum/dynamic_ruleset/roundstart/revs/rule_process()
 	if(check_rev_victory())
-		finished = REVOLUTION_VICTORY
+		finished = REVOLUTION_VICTORY_MAJOR
 		return RULESET_STOP_PROCESSING
 	else if (check_heads_victory())
-		finished = STATION_VICTORY
+		finished = STATION_VICTORY_MAJOR
 		SSshuttle.clearHostileEnvironment(src)
 		revolution.save_members()
 		for(var/datum/mind/M in revolution.members)	// Remove antag datums and prevents podcloned or exiled headrevs restarting rebellions.
@@ -434,7 +434,7 @@
 	return FALSE
 
 /datum/dynamic_ruleset/roundstart/revs/check_finished()
-	if(finished == REVOLUTION_VICTORY)
+	if(finished == REVOLUTION_VICTORY_MAJOR)
 		return TRUE
 	else
 		return ..()
@@ -454,10 +454,10 @@
 	return TRUE
 
 /datum/dynamic_ruleset/roundstart/revs/round_result()
-	if(finished == REVOLUTION_VICTORY)
+	if(finished == REVOLUTION_VICTORY_MAJOR)
 		SSticker.mode_result = "win - heads killed"
 		SSticker.news_report = REVS_WIN
-	else if(finished == STATION_VICTORY)
+	else if(finished == STATION_VICTORY_MAJOR)
 		SSticker.mode_result = "loss - rev heads killed"
 		SSticker.news_report = REVS_LOSE
 

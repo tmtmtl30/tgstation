@@ -4,8 +4,7 @@
 // Just make sure the converter is a head before you call it!
 // To remove a rev (from brainwashing or w/e), call SSticker.mode:remove_revolutionary(_THE_PLAYERS_MIND_),
 // this will also check they're not a head, so it can just be called freely
-// If the game sometimes isn't registering a win properly, then our check_finished is fucked up.
-
+// If the game sometimes isn't registering a win properly, then our check_finished() is fucked up.
 
 /datum/game_mode/revolution
 	name = "revolution"
@@ -64,7 +63,7 @@
 /datum/game_mode/revolution/post_setup()
 	var/list/heads = SSjob.get_living_heads()
 	var/list/sec = SSjob.get_living_sec()
-	var/weighted_score = min(max(round(heads.len - ((8 - sec.len) / 3)),1),max_headrevs)
+	var/weighted_score = round(clamp(heads.len - ((8 - sec.len) / 3),1,max_headrevs))
 
 	for(var/datum/mind/rev_mind in headrev_candidates)	//People with return to lobby may still be in the lobby. Let's pick someone else in that case.
 		if(isnewplayer(rev_mind.current))
@@ -123,16 +122,9 @@
 ///////////////////////////////////////////
 /datum/game_mode/revolution/check_finished()
 	if(check_rev_victory())
-		victory_status = 1
+		victory_status = REVOLUTION_VICTORY_MAJOR
 	else if(check_heads_victory())
-		victory_status = 2
-
-	if(victory_status)
-		if(!(CONFIG_GET(keyed_list/continuous["revolution"])))
-			return TRUE
-		SSshuttle.clearHostileEnviornment(src)
-	return ..()
-
+		victory_status = STATION_VICTORY_MAJOR
 	if(CONFIG_GET(keyed_list/continuous)["revolution"])
 		if(victory_status)
 			SSshuttle.clearHostileEnvironment(src)
@@ -174,18 +166,18 @@
 
 /datum/game_mode/revolution/set_round_result()
 	..()
-	if(victory_status == 1)
+	if(victory_status == REVOLUTION_VICTORY_MAJOR)
 		SSticker.mode_result = "win - heads killed"
 		SSticker.news_report = REVS_WIN
-	else if(victory_status == 2)
+	else if(victory_status == STATION_VICTORY_MAJOR)
 		SSticker.mode_result = "loss - rev heads killed"
 		SSticker.news_report = REVS_LOSE
 
 //TODO What should be displayed for revs in non-rev rounds
 /datum/game_mode/revolution/special_report()
-	if(victory_status == 1)
+	if(victory_status == REVOLUTION_VICTORY_MAJOR)
 		return "<div class='panel redborder'><span class='redtext big'>The heads of staff were killed or exiled! The revolutionaries win!</span></div>"
-	else if(victory_status == 2)
+	else if(victory_status == STATION_VICTORY_MAJOR)
 		return "<div class='panel redborder'><span class='redtext big'>The heads of staff managed to stop the revolution!</span></div>"
 
 /datum/game_mode/revolution/generate_report()
@@ -231,10 +223,44 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	report_type = "domination"
 	end_when_heads_dead = FALSE
 	is_domination = TRUE
-	var/victory_type = 0
 
-/// sets our victory type depending on whether any heads of staff escaped alive
-/datum/game_mode/revolution/domination/proc/check_victory_type()
+
+/datum/game_mode/revolution/domination/post_setup()
+	.=..()
+	SSshuttle.clearHostileEnvironment(src)
+
+/datum/game_mode/revolution/domination/special_report()
+	switch(victory_status)
+		if(REVOLUTION_VICTORY_MAJOR)
+			return "<div class='panel redborder'><span class='redtext big'>Revolution Major Victory: The revolutionaries assumed total control of the station!</span></div>"
+		if(STATION_VICTORY_MAJOR)
+			return "<div class='panel redborder'><span class='redtext big'>Crew Major Victory: The crew managed to stop the revolutionaries from taking control of the station!</span></div>"
+		if(REVOLUTION_VICTORY_MINOR)
+			return "<div class='panel redborder'><span class='redtext big'>Revolution Minor Victory: An escape signal made it to Central Command, but the revolution stopped the heads of staff from escaping!</span></div>"
+		if(STATION_VICTORY_MINOR)
+			return "<div class='panel redborder'><span class='redtext big'>Crew Minor Victory: A head of staff managed to escape to warn Central Command of the revolution!</span></div>"
+
+/* DOM DEBUG HOLY SHIT THIS PROC SUCKS SO BAD */
+/datum/game_mode/revolution/domination/check_heads_victory()
+	var/dom_recount = 0
+	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
+		dom_recount++
+		if(N.active && !N.takeover_complete == 2)
+			return FALSE
+		if(N.takeover_complete == 2)
+			return TRUE
+		if(dom_recount < GLOB.dominator_count)
+			return TRUE
+		else
+			return ..()
+
+/datum/game_mode/revolution/domination/check_finished()
+	. = ..()
+	if(. && !victory_status)
+		check_shuttle_victory()
+
+/// sets our victory status based on whether any heads of staff escaped alive
+/datum/game_mode/revolution/domination/proc/check_shuttle_victory()
 	if(SSshuttle.emergency.mode == SHUTTLE_ESCAPE || SSshuttle.emergency.mode == SHUTTLE_ENDGAME)
 		var/headcount = 0
 		var/untracked_heads = SSjob.get_all_heads()
@@ -242,9 +268,9 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 			if(survivor.ckey && considered_escaped(survivor.mind))
 				headcount++
 		if(!headcount)
-			victory_type = 3
+			victory_status = REVOLUTION_VICTORY_MINOR
 		else
-			victory_type = 4
+			victory_status = STATION_VICTORY_MINOR
 
 /* DOM DEBUG HOLY SHIT THIS PROC SUCKS SO BAD */
 /datum/game_mode/revolution/domination/proc/considered_escaped(datum/mind/M)
@@ -256,49 +282,6 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	if(!location || istype(location, /turf/open/floor/plasteel/shuttle/red) || istype(location, /turf/open/floor/mineral/plastitanium/red/brig))
 		return FALSE
 	return location.onCentCom() || location.onSyndieBase()
-
-/datum/game_mode/revolution/domination/post_setup()
-	.=..()
-	SSshuttle.clearHostileEnvironment(src)
-
-/datum/game_mode/revolution/domination/special_report()
-	switch(victory_type)
-		if(1)
-			return "<div class='panel redborder'><span class='redtext big'>Revolution Major Victory: The revolutionaries assumed total control of the station!</span></div>"
-		if(2)
-			return "<div class='panel redborder'><span class='redtext big'>Crew Major Victory: The crew managed to stop the revolutionaries from taking control of the station!</span></div>"
-		if(3)
-			return "<div class='panel redborder'><span class='redtext big'>Revolution Minor Victory: An escape signal made it to Central Command, but the revolution stopped the heads of staff from escaping!</span></div>"
-		if(4)
-			return "<div class='panel redborder'><span class='redtext big'>Crew Minor Victory: A head of staff managed to escape to warn Central Command of the revolution!</span></div>"
-
-/datum/game_mode/revolution/domination/check_rev_victory()
-	for(var/datum/objective/objective in revolution.objectives)
-		if(!(objective.check_completion()))
-			return FALSE
-	victory_type = 1
-	return TRUE
-
-/datum/game_mode/revolution/domination/check_heads_victory()
-	var/dom_recount = 0
-	for(var/obj/machinery/revdominator/N in GLOB.poi_list)
-		dom_recount++
-		if(N.active && !N.takeover_complete == 2)
-			return FALSE
-		if(N.takeover_complete == 2)
-			victory_type = 2
-			return TRUE
-		if(dom_recount < GLOB.dominator_count)
-			victory_type = 2
-			return TRUE
-		else
-			return ..()
-
-/datum/game_mode/revolution/domination/check_finished()
-	. = ..()
-	victory_type = victory_status
-	if(.)
-		check_victory_type()
 
 ////////////
 ////////////

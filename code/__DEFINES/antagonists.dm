@@ -1,3 +1,4 @@
+//nuke detonation outcomes
 #define NUKE_RESULT_FLUKE 0
 #define NUKE_RESULT_NUKE_WIN 1
 #define NUKE_RESULT_CREW_WIN 2
@@ -19,10 +20,17 @@
 #define FUGITIVE_RESULT_FUGITIVE_VICTORY 7
 #define FUGITIVE_RESULT_MAJOR_FUGITIVE 8
 
+//wizard apprentice types
 #define APPRENTICE_DESTRUCTION "destruction"
 #define APPRENTICE_BLUESPACE "bluespace"
 #define APPRENTICE_ROBELESS "robeless"
 #define APPRENTICE_HEALING "healing"
+
+//revolution gamemode outcomes
+#define REVOLUTION_VICTORY_MAJOR 1
+#define STATION_VICTORY_MAJOR 2
+#define REVOLUTION_VICTORY_MINOR 3
+#define STATION_VICTORY_MINOR 4
 
 
 //Blob
