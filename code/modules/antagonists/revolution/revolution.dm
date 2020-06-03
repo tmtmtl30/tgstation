@@ -51,12 +51,9 @@
 /datum/antagonist/rev/create_team(datum/team/revolution/new_team)
 	if(!new_team)
 		//For now only one revolution at a time
-		for(var/datum/antagonist/rev/head/H in GLOB.antagonists)
-			if(!H.owner)
-				continue
-			if(H.rev_team)
-				rev_team = H.rev_team
-				return
+		for(var/datum/team/revolution/R in GLOB.antagonist_teams)
+			rev_team = R
+			return
 		rev_team = new /datum/team/revolution
 		rev_team.update_objectives()
 		rev_team.update_heads()
@@ -89,7 +86,9 @@
 	owner.remove_antag_datum(/datum/antagonist/rev)
 	var/datum/antagonist/rev/head/new_revhead = new()
 	new_revhead.silent = TRUE
+	new_revhead.give_flash = FALSE
 	old_owner.add_antag_datum(new_revhead,old_team)
+	new_revhead.give_flash = TRUE
 	new_revhead.silent = FALSE
 	to_chat(old_owner, "<span class='userdanger'>You have proved your devotion to revolution! You are a head revolutionary now!</span>")
 
@@ -104,9 +103,6 @@
 	log_admin("[key_name(admin)] has head-rev'ed [O].")
 
 /datum/antagonist/rev/head/admin_add(datum/mind/new_owner,mob/admin)
-	give_flash = TRUE
-	give_hud = TRUE
-	remove_clumsy = TRUE
 /* BEGIN DOM DEBUG TAG */
 	if(rev_team.is_domination_team)
 		give_dom = TRUE
@@ -120,7 +116,7 @@
 	. = ..()
 	. -= "Promote"
 	.["Take flash"] = CALLBACK(src,.proc/admin_take_flash)
-	.["Give flash"] = CALLBACK(src,.proc/admin_give_flash)
+	.["Give flash"] = CALLBACK(src,.proc/equip_rev)
 	.["Repair flash"] = CALLBACK(src,.proc/admin_repair_flash)
 	.["Demote"] = CALLBACK(src,.proc/admin_demote)
 
@@ -131,19 +127,6 @@
 		to_chat(admin, "<span class='danger'>Deleting flash failed!</span>")
 		return
 	qdel(flash)
-
-/datum/antagonist/rev/head/proc/admin_give_flash(mob/admin)
-	//This is probably overkill but making these impact state annoys me
-	var/old_give_flash = give_flash
-	var/old_give_hud = give_hud
-	var/old_remove_clumsy = remove_clumsy
-	give_flash = TRUE
-	give_hud = FALSE
-	remove_clumsy = FALSE
-	equip_rev()
-	give_flash = old_give_flash
-	give_hud = old_give_hud
-	remove_clumsy = old_remove_clumsy
 
 /datum/antagonist/rev/head/proc/admin_repair_flash(mob/admin)
 	var/list/L = owner.current.get_contents()
@@ -162,19 +145,16 @@
 /datum/antagonist/rev/head
 	name = "Head Revolutionary"
 	antag_hud_name = "rev_head"
+	var/give_flash = TRUE // used in equip_rev() to determine if a flash should be given; set by promote() to prevent giving magic flashes to promoted revs
 /* BEGIN DOM DEBUG TAG */
 	var/give_dom = FALSE
 /* END DOM DEBUG TAG */
-	var/remove_clumsy = FALSE
-	var/give_flash = FALSE
-	var/give_hud = TRUE
 
 /datum/antagonist/rev/head/on_removal()
-	if(give_hud)
-		var/mob/living/carbon/C = owner.current
-		var/obj/item/organ/cyberimp/eyes/hud/security/syndicate/S = C.getorganslot(ORGAN_SLOT_HUD)
-		if(S)
-			S.Remove(C)
+	var/mob/living/carbon/C = owner.current
+	var/obj/item/organ/cyberimp/eyes/hud/security/syndicate/S = C.getorganslot(ORGAN_SLOT_HUD)
+	if(S)
+		S.Remove(C)
 	return ..()
 
 /datum/antagonist/rev/head/antag_listing_name()
@@ -266,8 +246,9 @@
 		else
 			to_chat(C, "The flash in your [where] will help you to persuade the crew to join your cause.")
 
-	if(give_hud)
-		var/obj/item/organ/cyberimp/eyes/hud/security/syndicate/S = new()
+	var/obj/item/organ/cyberimp/eyes/hud/security/syndicate/S = C.getorganslot(ORGAN_SLOT_HUD)
+	if(!S)
+		S = new()
 		S.Insert(C)
 		to_chat(C, "Your eyes have been implanted with a cybernetic security HUD which will help you keep track of who is mindshield-implanted, and therefore unable to be recruited.")
 
