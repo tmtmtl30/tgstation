@@ -32,6 +32,8 @@
 #define REVOLUTION_VICTORY_MINOR 3
 #define STATION_VICTORY_MINOR 4
 
+//How often to check for rev -> revhead promotion possibility
+#define HEAD_UPDATE_PERIOD 300
 
 //Blob
 /// blob gets a free reroll every X time

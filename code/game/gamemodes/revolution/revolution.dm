@@ -29,9 +29,6 @@
 	var/datum/team/revolution/revolution
 	var/list/datum/mind/headrev_candidates = list()
 	var/end_when_heads_dead = TRUE
-/* BEGIN DOM DEBUG TAG */
-	var/is_domination = FALSE
-/* END DOM DEBUG TAG */
 
 ///////////////////////////////////////////////////////////////////////////////
 //Gets the round setup, cancelling if there's not enough players at the start//
@@ -92,18 +89,9 @@
 		headrev_candidates -= trotsky
 
 	revolution = new()
-/* BEGIN DOM DEBUG TAG */
-	if(is_domination)
-		revolution.is_domination_team = TRUE
-/* END DOM DEBUG TAG */
-
 	for(var/datum/mind/rev_mind in headrev_candidates)
 		log_game("[key_name(rev_mind)] has been selected as a head rev")
 		var/datum/antagonist/rev/head/new_head = new()
-/* BEGIN DOM DEBUG TAG */
-		if(is_domination)
-			new_head.give_dom = TRUE
-/* END DOM DEBUG TAG */
 		rev_mind.add_antag_datum(new_head,revolution)
 		GLOB.pre_setup_antags -= rev_mind
 
@@ -219,7 +207,6 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	config_tag = "domination"
 	report_type = "domination"
 	end_when_heads_dead = FALSE
-	is_domination = TRUE
 
 
 /datum/game_mode/revolution/domination/post_setup()
