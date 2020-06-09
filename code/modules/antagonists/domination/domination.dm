@@ -4,7 +4,6 @@
 	roundend_category = "dominators" // if by some miracle revolutionaries without revolution happen
 	antagpanel_category = "Domination"
 	rev_head_path = /datum/antagonist/rev/head/domination
-	rev_normal_path = /datum/antagonist/rev/domination
 	rev_team_path = /datum/team/revolution/domination
 
 /datum/antagonist/rev/head/domination
@@ -15,9 +14,6 @@
 	rev_normal_path = /datum/antagonist/rev/domination
 	rev_team_path = /datum/team/revolution/domination
 	var/give_dom = TRUE
-
-/datum/antagonist/rev/head/domination/get_admin_commands()
-
 
 /datum/antagonist/rev/head/domination/on_removal()
 	var/mob/living/carbon/C = owner.current
@@ -30,15 +26,42 @@
 	if(!ishuman(C) && !ismonkey(C)) // a shame that we have to duplicate this check
 		return
 	. = ..()
-
 	if(give_dom)
-		var/obj/item/implant/beacondrop/dominator/D
-		D = new(C)
-		D.implant(C,FALSE, silent = TRUE, force = TRUE)
-		to_chat(C, "You have been implanted with a beacon that will send a Dominator to your position, enabling station takeover. Be careful: <b>you only get one shot</b>.")
+		var/obj/item/implant/beacondrop/dominator/dom
+		for(var/obj/item/implant/beacondrop/dominator/D in C.implants)
+			if(!D.uses)
+				D.uses = 1
+			dom = D
+			break
+		if(!dom)
+			dom = new(C)
+			dom.implant(C,FALSE, silent = TRUE, force = TRUE)
+			to_chat(C, "You have been implanted with a beacon that will send a Dominator to your position, enabling station takeover. Be careful: <b>you only get one shot</b>.")
+
+/datum/antagonist/rev/head/domination/get_admin_commands()
+	. = ..()
+	.["Refresh Dominator Implant"] = CALLBACK(src,.proc/admin_refresh_dom_implant)
+
+/datum/antagonist/rev/head/domination/admin_give_flash(mob/admin)
+	var/old_give_dom = give_dom
+	give_dom = FALSE
+	. = ..()
+	give_dom = old_give_dom
+
+/datum/antagonist/rev/head/domination/proc/admin_refresh_dom_implant(mob/admin)
+	var/old_give_dom = give_dom
+	var/old_give_flash = give_flash
+	give_dom = TRUE
+	give_flash = FALSE
+	equip_rev()
+	give_flash = old_give_flash
+	give_dom = old_give_dom
 
 /datum/team/revolution/domination
 	name = "Domination"
+	rev_normal_path = /datum/antagonist/rev/domination
+	rev_head_path = /datum/antagonist/rev/head/domination
+
 
 /datum/team/revolution/domination/update_objectives()
 	if(!objectives.len)
@@ -50,5 +73,5 @@
 	addtimer(CALLBACK(src,.proc/update_objectives),HEAD_UPDATE_PERIOD,TIMER_UNIQUE)
 
 /datum/team/revolution/is_gamemode_hero()
-
+	return SSticker.mode.name == "domination"
 /* END DOM DEBUG TAG */

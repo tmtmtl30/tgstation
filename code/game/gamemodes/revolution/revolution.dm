@@ -26,6 +26,8 @@
 
 	var/victory_status = 0
 	var/max_headrevs = 3
+	var/rev_team_type = /datum/team/revolution
+	var/rev_head_type = /datum/antagonist/rev/head
 	var/datum/team/revolution/revolution
 	var/list/datum/mind/headrev_candidates = list()
 	var/end_when_heads_dead = TRUE
@@ -88,10 +90,10 @@
 		antag_candidates += trotsky
 		headrev_candidates -= trotsky
 
-	revolution = new()
+	revolution = new rev_team_type()
 	for(var/datum/mind/rev_mind in headrev_candidates)
 		log_game("[key_name(rev_mind)] has been selected as a head rev")
-		var/datum/antagonist/rev/head/new_head = new()
+		var/datum/antagonist/rev/head/new_head = new rev_head_type()
 		rev_mind.add_antag_datum(new_head,revolution)
 		GLOB.pre_setup_antags -= rev_mind
 
@@ -207,7 +209,8 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	config_tag = "domination"
 	report_type = "domination"
 	end_when_heads_dead = FALSE
-
+	rev_head_type = /datum/antagonist/rev/head/domination
+	rev_team_type = /datum/team/revolution/domination
 
 /datum/game_mode/revolution/domination/post_setup()
 	.=..()
@@ -302,7 +305,7 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	var/num_revheads = 0
 	for(var/mob/living/carbon/survivor in GLOB.alive_mob_list)
 		if(survivor.ckey)
-			if(survivor.mind.has_antag_datum(/datum/antagonist/rev/head) == TRUE)
+			if(survivor.mind.has_antag_datum(/datum/antagonist/rev/head))
 				num_revheads++
 	if(GLOB.dominator_count >= num_revheads)
 		last_chance = TRUE
@@ -330,7 +333,7 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 	var/num_nonrevs = 0
 	for(var/mob/living/carbon/survivor in GLOB.alive_mob_list)
 		if(survivor.ckey)
-			if(survivor.mind.has_antag_datum(/datum/antagonist/rev) == TRUE)
+			if(survivor.mind.has_antag_datum(/datum/antagonist/rev))
 				num_revs++
 			else
 				num_nonrevs++
@@ -379,7 +382,7 @@ GLOBAL_VAR_INIT(dominator_count, 0)
 		to_chat(user, "<span class='notice'>The embedded timer reads: <b>[seconds_remaining()]</b>.</span>")
 		return
 	if(!active)
-		if((user.mind.has_antag_datum(/datum/antagonist/rev) == FALSE) || alert(user, "Attempt to take control of all station systems?", "[src]", "Yes", "Cancel") == "Cancel")
+		if(!(user.mind.has_antag_datum(/datum/antagonist/rev)) || (alert(user, "Attempt to take control of all station systems?", "[src]", "Yes", "Cancel") == "Cancel"))
 			if(user.canUseTopic(src, BE_CLOSE))
 				to_chat(user, "<b>You warily regard the inactive [src].</b>")
 				return

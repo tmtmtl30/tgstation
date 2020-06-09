@@ -7,7 +7,6 @@
 	antag_hud_type = ANTAG_HUD_REV
 	antag_hud_name = "rev"
 	var/rev_head_path = /datum/antagonist/rev/head
-	var/rev_normal_path = /datum/antagonist/rev
 	var/rev_team_path = /datum/team/revolution
 	var/datum/team/revolution/rev_team
 
@@ -121,7 +120,7 @@
 			carbon_mob.silent = max(carbon_mob.silent, 5)
 			carbon_mob.flash_act(1, 1)
 		rev_mind.current.Stun(100)
-	rev_mind.add_antag_datum(rev_normal_path,rev_team)
+	rev_mind.add_antag_datum(type,rev_team)
 	rev_mind.special_role = ROLE_REV
 	return TRUE
 
@@ -138,6 +137,7 @@
 /datum/antagonist/rev/head
 	name = "Head Revolutionary"
 	antag_hud_name = "rev_head"
+	var/rev_normal_path = /datum/antagonist/rev
 	var/give_flash = TRUE // used in equip_rev() to determine if a flash should be given; set by promote() to prevent giving magic flashes to promoted revs
 
 /datum/antagonist/rev/head/admin_add(datum/mind/new_owner,mob/admin)
@@ -200,7 +200,7 @@
 	. = ..()
 	. -= "Promote"
 	.["Take flash"] = CALLBACK(src,.proc/admin_take_flash)
-	.["Give flash"] = CALLBACK(src,.proc/equip_rev)
+	.["Give flash"] = CALLBACK(src,.proc/admin_give_flash)
 	.["Repair flash"] = CALLBACK(src,.proc/admin_repair_flash)
 	.["Demote"] = CALLBACK(src,.proc/admin_demote)
 
@@ -211,6 +211,12 @@
 		to_chat(admin, "<span class='danger'>Deleting flash failed!</span>")
 		return
 	qdel(flash)
+
+/datum/antagonist/rev/head/proc/admin_give_flash(mob/admin)
+	var/old_give_flash = give_flash
+	give_flash = TRUE
+	equip_rev()
+	give_flash = old_give_flash
 
 /datum/antagonist/rev/head/proc/admin_repair_flash(mob/admin)
 	var/list/L = owner.current.get_contents()
@@ -228,7 +234,7 @@
 
 /datum/antagonist/rev/head/proc/demote()
 	silent = TRUE
-	owner.remove_antag_datum(/datum/antagonist/rev/head)
+	owner.remove_antag_datum(type)
 	var/datum/antagonist/rev/new_rev = new rev_normal_path()
 	new_rev.silent = TRUE
 	owner.add_antag_datum(new_rev,rev_team)
@@ -237,6 +243,8 @@
 
 /datum/team/revolution
 	name = "Revolution"
+	var/rev_normal_path = /datum/antagonist/rev
+	var/rev_head_path = /datum/antagonist/rev/head
 	var/max_headrevs = 3
 	var/list/ex_headrevs = list() // Dynamic removes revs on loss, used to keep a list for the roundend report.
 	var/list/ex_revs = list()
@@ -259,7 +267,7 @@
 /datum/team/revolution/proc/head_revolutionaries()
 	. = list()
 	for(var/datum/mind/M in members)
-		if(M.has_antag_datum(/datum/antagonist/rev/head))
+		if(M.has_antag_datum(rev_head_path))
 			. += M
 
 /datum/team/revolution/proc/update_heads()
@@ -283,12 +291,12 @@
 				promotable = nonhuman_promotable
 			if(promotable.len)
 				var/datum/mind/new_leader = pick(promotable)
-				var/datum/antagonist/rev/rev = new_leader.has_antag_datum(/datum/antagonist/rev)
+				var/datum/antagonist/rev/rev = new_leader.has_antag_datum(rev_normal_path)
 				rev.promote()
 
 /datum/team/revolution/proc/save_members()
-	ex_headrevs = get_antag_minds(/datum/antagonist/rev/head, TRUE)
-	ex_revs = get_antag_minds(/datum/antagonist/rev, TRUE)
+	ex_headrevs = get_antag_minds(rev_head_path, TRUE)
+	ex_revs = get_antag_minds(rev_normal_path, TRUE)
 
 /datum/team/revolution/roundend_report()
 	if(!members.len && !ex_headrevs.len)
@@ -315,12 +323,12 @@
 	if(ex_headrevs.len)
 		headrevs = ex_headrevs
 	else
-		headrevs = get_antag_minds(/datum/antagonist/rev/head, TRUE)
+		headrevs = get_antag_minds(rev_head_path, TRUE)
 
 	if(ex_revs.len)
 		revs = ex_revs
 	else
-		revs = get_antag_minds(/datum/antagonist/rev, TRUE)
+		revs = get_antag_minds(rev_normal_path, TRUE)
 
 	if(headrevs.len)
 		var/list/headrev_part = list()
@@ -357,7 +365,7 @@
 	parts += "<b>[antag_listing_name()]</b><br>"
 	parts += "<table cellspacing=5>"
 
-	var/list/heads = get_team_antags(/datum/antagonist/rev/head,TRUE)
+	var/list/heads = get_team_antags(rev_head_path,TRUE)
 
 	for(var/datum/antagonist/A in heads | get_team_antags())
 		parts += A.antag_listing_entry()
