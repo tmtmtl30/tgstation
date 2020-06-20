@@ -22,14 +22,7 @@
 	var/list/culties = list()
 
 /datum/game_mode/heretics/pre_setup()
-
-	if(CONFIG_GET(flag/protect_roles_from_antagonist))
-		restricted_jobs += protected_jobs
-
-	if(CONFIG_GET(flag/protect_assistant_from_antagonist))
-		restricted_jobs += "Assistant"
-
-
+	..()
 	var/esc = CONFIG_GET(number/ecult_scaling_coeff)
 	if(esc)
 		num_ecult = min(max(1, min(round(num_players() / (esc * 2)) + 2, round(num_players() / esc))),4)

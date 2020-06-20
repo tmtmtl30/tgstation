@@ -80,8 +80,12 @@
 		return 1
 
 
-///Attempts to select players for special roles the mode might have.
+///Attempts to select players for special roles the mode might have, and handles the config flags protect_roles_from_antagonist and protect_assistant_from_antagonist should they be set.
 /datum/game_mode/proc/pre_setup()
+	if(CONFIG_GET(flag/protect_roles_from_antagonist))
+		restricted_jobs |= protected_jobs
+	if(CONFIG_GET(flag/protect_assistant_from_antagonist))
+		restricted_jobs |= "Assistant"
 	return 1
 
 ///Everyone should now be on the station and have their normal gear.  This is the place to give the special roles extra things

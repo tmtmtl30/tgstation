@@ -31,6 +31,7 @@
 
 
 /datum/game_mode/monkey/pre_setup()
+	..()
 	carriers_to_make = max(round(num_players()/players_per_carrier, 1), 1)
 
 	for(var/j = 0, j < carriers_to_make, j++)

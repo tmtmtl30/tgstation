@@ -59,12 +59,7 @@
 
 
 /datum/game_mode/cult/pre_setup()
-	if(CONFIG_GET(flag/protect_roles_from_antagonist))
-		restricted_jobs += protected_jobs
-
-	if(CONFIG_GET(flag/protect_assistant_from_antagonist))
-		restricted_jobs += "Assistant"
-
+	..()
 	//cult scaling goes here
 	recommended_enemies = 1 + round(num_players()/CULT_SCALING_COEFFICIENT)
 	var/remaining = (num_players() % CULT_SCALING_COEFFICIENT) * 10 //Basically the % of how close the population is toward adding another cultis

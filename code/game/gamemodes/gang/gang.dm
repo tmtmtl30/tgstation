@@ -21,6 +21,11 @@
 	announce_text = "Can you survive this onslaught?"
 
 /datum/game_mode/gang/warriors/pre_setup()
+	if(CONFIG_GET(flag/protect_roles_from_antagonist))		// would normally be inherited from game_mode, but
+		restricted_jobs |= protected_jobs					// the order of operations in the normal gang
+	if(CONFIG_GET(flag/protect_assistant_from_antagonist))	// gamemode's pre_setup makes that infeasible
+		restricted_jobs |= "Assistant"
+
 	handler = new /datum/gang_handler(antag_candidates,restricted_jobs)
 	var/list/datum/antagonist/gang/gangs_to_generate = subtypesof(/datum/antagonist/gang)
 	handler.gangs_to_generate = gangs_to_generate.len
@@ -28,6 +33,7 @@
 	return handler.pre_setup_analogue()
 
 /datum/game_mode/gang/pre_setup()
+	..()
 	handler = new /datum/gang_handler(antag_candidates,restricted_jobs)
 	return handler.pre_setup_analogue()
 
