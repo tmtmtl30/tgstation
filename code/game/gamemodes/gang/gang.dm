@@ -30,7 +30,7 @@
 /datum/game_mode/gang/pre_setup()
 	..()
 	handler = new /datum/gang_handler(antag_candidates,restricted_jobs)
-	if(type == /datum/game_mode/gang):
+	if(type == /datum/game_mode/gang)
 		return handler.pre_setup_analogue()
 	return
 
