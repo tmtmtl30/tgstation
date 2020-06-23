@@ -11,7 +11,6 @@
 	antag_flag = ROLE_TRAITOR
 	antag_datum = /datum/antagonist/traitor/
 	minimum_required_age = 0
-	protected_roles = list("Prisoner","Security Officer", "Warden", "Detective", "Head of Security", "Captain")
 	restricted_roles = list("Cyborg")
 	required_candidates = 1
 	weight = 5
@@ -51,8 +50,7 @@
 	name = "Blood Brothers"
 	antag_flag = ROLE_BROTHER
 	antag_datum = /datum/antagonist/brother/
-	protected_roles = list("Prisoner","Security Officer", "Warden", "Detective", "Head of Security", "Captain")
-	restricted_roles = list("Cyborg", "AI")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 2
 	weight = 4
 	cost = 15
@@ -101,8 +99,7 @@
 	name = "Changelings"
 	antag_flag = ROLE_CHANGELING
 	antag_datum = /datum/antagonist/changeling
-	protected_roles = list("Prisoner","Security Officer", "Warden", "Detective", "Head of Security", "Captain")
-	restricted_roles = list("AI", "Cyborg")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 1
 	weight = 3
 	cost = 15
@@ -152,8 +149,7 @@
 	name = "Heretics"
 	antag_flag = ROLE_HERETIC
 	antag_datum = /datum/antagonist/heretic
-	protected_roles = list("Prisoner","Security Officer", "Warden", "Detective", "Head of Security", "Captain")
-	restricted_roles = list("AI", "Cyborg")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 1
 	weight = 3
 	cost = 20
@@ -240,7 +236,8 @@
 	antag_flag = ROLE_CULTIST
 	antag_datum = /datum/antagonist/cult
 	minimum_required_age = 14
-	restricted_roles = list("AI", "Cyborg", "Prisoner", "Security Officer", "Warden", "Detective", "Head of Security", "Captain", "Chaplain", "Head of Personnel")
+	protected_roles = list("Head of Personnel")
+	restricted_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED, "Chaplain")
 	required_candidates = 2
 	weight = 3
 	cost = 35
@@ -383,7 +380,7 @@
 	antag_flag_override = ROLE_REV
 	antag_datum = /datum/antagonist/rev/head
 	minimum_required_age = 14
-	restricted_roles = list("AI", "Cyborg", "Prisoner", "Security Officer", "Warden", "Detective", "Head of Security", "Captain", "Head of Personnel", "Chief Engineer", "Chief Medical Officer", "Research Director")
+	restricted_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED, "Head of Personnel", "Chief Engineer", "Chief Medical Officer", "Research Director")
 	required_candidates = 3
 	weight = 2
 	delay = 7 MINUTES
@@ -503,8 +500,8 @@
 	name = "Families"
 	persistent = TRUE
 	antag_flag = ROLE_FAMILIES
-	protected_roles = list("Prisoner", "Head of Personnel")
-	restricted_roles = list("Cyborg", "AI", "Security Officer", "Warden", "Detective", "Head of Security", "Captain")
+	protected_roles = list("Head of Personnel")
+	restricted_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED)
 	required_candidates = 6 // gotta have 'em ALL
 	weight = 2
 	cost = 30
@@ -596,7 +593,7 @@
 	name = "Devil"
 	antag_flag = ROLE_DEVIL
 	antag_datum = /datum/antagonist/devil
-	restricted_roles = list("Lawyer", "Curator", "Chaplain", "Prisoner", "Head of Security", "Captain", "AI")
+	restricted_roles = list(JOBS_SILICON, "Lawyer", "Curator", "Chaplain")
 	required_candidates = 1
 	weight = 3
 	cost = 0
@@ -649,7 +646,7 @@
 	name = "Monkey"
 	antag_flag = ROLE_MONKEY
 	antag_datum = /datum/antagonist/monkey/leader
-	restricted_roles = list("Cyborg", "AI", "Prisoner")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 1
 	weight = 3
 	cost = 0

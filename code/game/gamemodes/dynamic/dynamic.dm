@@ -315,7 +315,7 @@ GLOBAL_VAR_INIT(dynamic_forced_threat_level, -1)
 					continue
 				ruleset.vars[variable] = rule_conf[variable]
 		if(CONFIG_GET(flag/protect_roles_from_antagonist))
-			ruleset.restricted_roles |= ruleset.protected_roles
+			ruleset.restricted_roles |= (ruleset.protected_roles | list(ROLES_MINDSHIELDED, "Prisoner"))
 		if(CONFIG_GET(flag/protect_assistant_from_antagonist))
 			ruleset.restricted_roles |= "Assistant"
 	for(var/i in GLOB.new_player_list)

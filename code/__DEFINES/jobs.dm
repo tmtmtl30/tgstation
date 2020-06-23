@@ -92,3 +92,9 @@
 #define JOB_DISPLAY_ORDER_DETECTIVE 33
 #define JOB_DISPLAY_ORDER_SECURITY_OFFICER 34
 #define JOB_DISPLAY_ORDER_PRISONER 35
+
+//For use in lists; specifically the lists found in gamemodes and dynamic rulesets used to restrict antagonist candidacy.
+/// Jobs that begin the round with mindshields already implanted.
+#define JOBS_MINDSHIELDED "Security Officer", "Detective", "Warden", "Head of Security", "Captain"
+/// Jobs that start as silicons.
+#define JOBS_SILICON "Cyborg", "AI", "Positronic Brain"

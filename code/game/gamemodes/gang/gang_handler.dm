@@ -48,11 +48,11 @@ GLOBAL_VAR_INIT(deaths_during_shift, 0)
 	/// The current wanted level. Set internally; used internally, and for updating the wanted HUD.
 	var/wanted_level
 	/// List of all /datum/team/gang. Used internally; added to externally by /datum/antagonist/gang when it generates a new /datum/team/gang.
-	var/list/gangs = list()
+	var/list/gangs
 	/// List of all family member minds. Used internally; added to internally, and externally by /obj/item/gang_induction_package when used to induct a new family member.
-	var/list/gangbangers = list()
+	var/list/gangbangers
 	/// List of all undercover cop minds. Used and set internally.
-	var/list/undercover_cops = list()
+	var/list/undercover_cops
 	/// The number of families (and 1:1 corresponding undercover cops) that should be generated. Can be set externally; used internally.
 	var/gangs_to_generate = 3
 	/// The number of family members more that a family may have over other active families. Can be set externally; used internally.
@@ -65,7 +65,7 @@ GLOBAL_VAR_INIT(deaths_during_shift, 0)
 	var/deaths_during_shift_at_beginning = 0
 
 	/// List of all eligible starting family members / undercover cops. Set externally (passed by reference) by gamemode / ruleset; used internally. Note that dynamic uses a list of mobs to handle candidates while game_modes use lists of minds! Don't be fooled!
-	var/list/antag_candidates = list()
+	var/list/antag_candidates
 	/// List of jobs not eligible for starting family member / undercover cop. Set externally (passed by reference) by gamemode / ruleset; used internally.
 	var/list/restricted_jobs
 
@@ -87,6 +87,9 @@ GLOBAL_VAR_INIT(deaths_during_shift, 0)
   * * revised_restricted - The restricted_jobs list or equivalent of the datum instantiating this one.
   */
 /datum/gang_handler/New(list/given_candidates, list/revised_restricted)
+	gangs = new
+	gangbangers = new
+	undercover_cops = new
 	antag_candidates = given_candidates
 	restricted_jobs = revised_restricted
 

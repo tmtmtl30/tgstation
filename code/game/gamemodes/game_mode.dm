@@ -23,8 +23,8 @@
 	var/nuke_off_station = 0 //Used for tracking where the nuke hit
 	var/round_ends_with_antag_death = 0 //flags the "one verse the station" antags as such
 	var/list/datum/mind/antag_candidates = list()	// List of possible starting antags goes here
-	var/list/restricted_jobs = list()	// Jobs it doesn't make sense to be.  I.E chaplain or AI cultist
-	var/list/protected_jobs = list()	// Jobs that can't be traitors because
+	var/list/restricted_jobs = list()	// Jobs that can't be considered candidates because of mechanical conflict. Chaplain cultist, AI changeling, HoS revhead, etc..
+	var/list/protected_jobs = list()	// Jobs that shouldn't be considered candidates because of balance or playability. Only takes effect if the config PROTECT_ROLES_FROM_ANTAGONIST is set.
 	var/list/required_jobs = list()		// alternative required job groups eg list(list(cap=1),list(hos=1,sec=2)) translates to one captain OR one hos and two secmans
 	var/required_players = 0
 	var/maximum_players = -1 // -1 is no maximum, positive numbers limit the selection of a mode on overstaffed stations
@@ -83,7 +83,7 @@
 ///Attempts to select players for special roles the mode might have, and handles the config flags protect_roles_from_antagonist and protect_assistant_from_antagonist should they be set.
 /datum/game_mode/proc/pre_setup()
 	if(CONFIG_GET(flag/protect_roles_from_antagonist))
-		restricted_jobs |= protected_jobs
+		restricted_jobs |= (protected_jobs | list(ROLES_MINDSHIELDED, "Prisoner")
 	if(CONFIG_GET(flag/protect_assistant_from_antagonist))
 		restricted_jobs |= "Assistant"
 	return 1

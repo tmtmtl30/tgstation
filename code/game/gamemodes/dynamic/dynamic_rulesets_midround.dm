@@ -164,8 +164,7 @@
 	name = "Syndicate Sleeper Agent"
 	antag_datum = /datum/antagonist/traitor
 	antag_flag = ROLE_TRAITOR
-	protected_roles = list("Prisoner", "Security Officer", "Warden", "Detective", "Head of Security", "Captain")
-	restricted_roles = list("Cyborg", "AI", "Positronic Brain")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 1
 	weight = 7
 	cost = 10
@@ -217,8 +216,8 @@
 	name = "Family Head Aspirants"
 	persistent = TRUE
 	antag_flag = ROLE_FAMILIES
-	protected_roles = list("Prisoner", "Head of Personnel")
-	restricted_roles = list("Cyborg", "AI", "Security Officer", "Warden", "Detective", "Head of Security", "Captain")
+	protected_roles = list("Head of Personnel")
+	restricted_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED)
 	required_candidates = 6 // gotta have 'em ALL
 	weight = 1
 	cost = 25
@@ -286,7 +285,7 @@
 	name = "Malfunctioning AI"
 	antag_datum = /datum/antagonist/traitor
 	antag_flag = ROLE_MALF
-	enemy_roles = list("Security Officer", "Warden","Detective","Head of Security", "Captain", "Scientist", "Chemist", "Research Director", "Chief Engineer")
+	enemy_roles = list(JOBS_MINDSHIELDED, "Scientist", "Chemist", "Research Director", "Chief Engineer")
 	exclusive_roles = list("AI")
 	required_enemies = list(4,4,4,4,4,4,2,2,2,0)
 	required_candidates = 1
@@ -336,7 +335,7 @@
 	name = "Wizard"
 	antag_datum = /datum/antagonist/wizard
 	antag_flag = ROLE_WIZARD
-	enemy_roles = list("Security Officer","Detective","Head of Security", "Captain")
+	enemy_roles = list(JOBS_MINDSHIELDED)
 	required_enemies = list(2,2,1,1,1,1,1,0,0,0)
 	required_candidates = 1
 	weight = 1
@@ -367,7 +366,7 @@
 	name = "Nuclear Assault"
 	antag_flag = ROLE_OPERATIVE
 	antag_datum = /datum/antagonist/nukeop
-	enemy_roles = list("AI", "Cyborg", "Security Officer", "Warden","Detective","Head of Security", "Captain")
+	enemy_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED)
 	required_enemies = list(3,3,3,3,3,2,1,1,0,0)
 	required_candidates = 5
 	weight = 5
@@ -409,7 +408,7 @@
 	name = "Blob"
 	antag_datum = /datum/antagonist/blob
 	antag_flag = ROLE_BLOB
-	enemy_roles = list("Security Officer", "Detective", "Head of Security", "Captain")
+	enemy_roles = list(JOBS_MINDSHIELDED)
 	required_enemies = list(2,2,1,1,1,1,1,0,0,0)
 	required_candidates = 1
 	weight = 4
@@ -431,7 +430,7 @@
 	name = "Alien Infestation"
 	antag_datum = /datum/antagonist/xeno
 	antag_flag = ROLE_ALIEN
-	enemy_roles = list("Security Officer", "Detective", "Head of Security", "Captain")
+	enemy_roles = list(JOBS_MINDSHIELDED)
 	required_enemies = list(2,2,1,1,1,1,1,0,0,0)
 	required_candidates = 1
 	weight = 3
@@ -477,7 +476,7 @@
 	antag_datum = /datum/antagonist/nightmare
 	antag_flag = "Nightmare"
 	antag_flag_override = ROLE_ALIEN
-	enemy_roles = list("Security Officer", "Detective", "Head of Security", "Captain")
+	enemy_roles = list(JOBS_MINDSHIELDED)
 	required_enemies = list(2,2,1,1,1,1,1,0,0,0)
 	required_candidates = 1
 	weight = 3
@@ -523,7 +522,7 @@
 	antag_datum = /datum/antagonist/space_dragon
 	antag_flag = "Space Dragon"
 	antag_flag_override = ROLE_SPACE_DRAGON
-	enemy_roles = list("Security Officer", "Detective", "Head of Security", "Captain")
+	enemy_roles = list(JOBS_MINDSHIELDED)
 	required_enemies = list(2,2,1,1,1,1,1,0,0,0)
 	required_candidates = 1
 	weight = 4

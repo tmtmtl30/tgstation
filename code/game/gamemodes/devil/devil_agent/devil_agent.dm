@@ -5,7 +5,6 @@
 	required_enemies = 3
 	recommended_enemies = 8
 	reroll_friendly = 0
-
 	traitors_possible = 10 //hard limit on traitors if scaling is turned off
 	num_modifier = 4
 	objective_count = 2

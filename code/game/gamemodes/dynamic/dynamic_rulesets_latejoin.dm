@@ -59,8 +59,7 @@
 	name = "Syndicate Infiltrator"
 	antag_datum = /datum/antagonist/traitor
 	antag_flag = ROLE_TRAITOR
-	protected_roles = list("Security Officer", "Warden", "Head of Personnel", "Detective", "Head of Security", "Captain")
-	restricted_roles = list("AI","Cyborg")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 1
 	weight = 7
 	cost = 5
@@ -80,8 +79,8 @@
 	antag_datum = /datum/antagonist/rev/head
 	antag_flag = ROLE_REV_HEAD
 	antag_flag_override = ROLE_REV
-	restricted_roles = list("AI", "Cyborg", "Prisoner", "Security Officer", "Warden", "Detective", "Head of Security", "Captain", "Head of Personnel", "Chief Engineer", "Chief Medical Officer", "Research Director")
-	enemy_roles = list("AI", "Cyborg", "Security Officer","Detective","Head of Security", "Captain", "Warden")
+	restricted_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED, "Head of Personnel", "Chief Engineer", "Chief Medical Officer", "Research Director")
+	enemy_roles = list(JOBS_SILICON, JOBS_MINDSHIELDED)
 	required_enemies = list(2,2,1,1,1,1,1,0,0,0)
 	required_candidates = 1
 	weight = 2
@@ -195,8 +194,7 @@
 	name = "Heretic Smuggler"
 	antag_datum = /datum/antagonist/heretic
 	antag_flag = ROLE_HERETIC
-	protected_roles = list("Security Officer", "Warden", "Head of Personnel", "Detective", "Head of Security", "Captain","Prisoner")
-	restricted_roles = list("AI","Cyborg")
+	restricted_roles = list(JOBS_SILICON)
 	required_candidates = 1
 	weight = 4
 	cost = 10
